@@ -1,6 +1,5 @@
 export function getExpirationString(expiration, UTCSecondsNow, config) {
-    var _a, _b;
-    const ranges = (_a = config === null || config === void 0 ? void 0 : config.includes) !== null && _a !== void 0 ? _a : [
+    const ranges = config?.includes ?? [
         {
             suffix: "d",
             durationSeconds: 60 * 60 * 24,
@@ -24,15 +23,15 @@ export function getExpirationString(expiration, UTCSecondsNow, config) {
     const secondsRemaining = expiration - UTCSecondsNow;
     const floorOrCeil = (n) => n < 0 ? 0 : expiration - UTCSecondsNow > 0 ? Math.floor(n) : Math.ceil(n);
     const numString = (n, suffix) => {
-        return floorOrCeil(n) || (config === null || config === void 0 ? void 0 : config.showZeros)
+        return floorOrCeil(n) || config?.showZeros
             ? `${floorOrCeil(n)}${suffix}`
             : "";
     };
     return ranges
         .map(({ durationSeconds, mod, suffix }) => numString(mod
         ? (secondsRemaining / durationSeconds) % mod
-        : secondsRemaining / durationSeconds, (config === null || config === void 0 ? void 0 : config.capitalizeSuffix) ? suffix.toUpperCase() : suffix))
-        .join((_b = config === null || config === void 0 ? void 0 : config.delimiter) !== null && _b !== void 0 ? _b : " ");
+        : secondsRemaining / durationSeconds, config?.capitalizeSuffix ? suffix.toUpperCase() : suffix))
+        .join(config?.delimiter ?? " ");
 }
 export function shortDateString(utc_seconds) {
     return `${new Date(utc_seconds * 1000).toLocaleDateString([], {

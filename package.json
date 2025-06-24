@@ -1,15 +1,20 @@
 {
-  "name": "@cardinal/common",
-  "description": "Token-related utilities for Solana.",
-  "version": "8.0.0",
-  "repository": "git@github.com:cardinal-labs/cardinal-common.git",
-  "author": "Giannis Chatziveroglou <giannis@cardinal.so>",
+  "name": "@iamibrahimwali/cardinal-common",
+  "description": "Token-related utilities for Solana. Updated fork of @cardinal/common.",
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mibrahimwali/cardinal-common-next.git"
+  },
+  "author": "Muhammad Ibrahim ibrahim.wali@irussoft.com",
   "license": "Apache-2.0",
   "keywords": [
     "solana",
-    "cardinal"
+    "cardinal",
+    "token",
+    "utility"
   ],
-  "homepage": "https://cardinal.so",
+  "homepage": "https://github.com/Mibrahimwali/cardinal-common-next",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
@@ -35,6 +40,5 @@
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "gitHead": "d5ebe40e75d6e8d0f969b1714614151edf2af032"
+  }
 }

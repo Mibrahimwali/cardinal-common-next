@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.secondsToString = exports.secondstoDuration = exports.longDateString = exports.shortDateString = exports.getExpirationString = void 0;
+exports.secondsToString = void 0;
+exports.getExpirationString = getExpirationString;
+exports.shortDateString = shortDateString;
+exports.longDateString = longDateString;
+exports.secondstoDuration = secondstoDuration;
 function getExpirationString(expiration, UTCSecondsNow, config) {
-    var _a, _b;
-    const ranges = (_a = config === null || config === void 0 ? void 0 : config.includes) !== null && _a !== void 0 ? _a : [
+    const ranges = config?.includes ?? [
         {
             suffix: "d",
             durationSeconds: 60 * 60 * 24,
@@ -27,17 +30,16 @@ function getExpirationString(expiration, UTCSecondsNow, config) {
     const secondsRemaining = expiration - UTCSecondsNow;
     const floorOrCeil = (n) => n < 0 ? 0 : expiration - UTCSecondsNow > 0 ? Math.floor(n) : Math.ceil(n);
     const numString = (n, suffix) => {
-        return floorOrCeil(n) || (config === null || config === void 0 ? void 0 : config.showZeros)
+        return floorOrCeil(n) || config?.showZeros
             ? `${floorOrCeil(n)}${suffix}`
             : "";
     };
     return ranges
         .map(({ durationSeconds, mod, suffix }) => numString(mod
         ? (secondsRemaining / durationSeconds) % mod
-        : secondsRemaining / durationSeconds, (config === null || config === void 0 ? void 0 : config.capitalizeSuffix) ? suffix.toUpperCase() : suffix))
-        .join((_b = config === null || config === void 0 ? void 0 : config.delimiter) !== null && _b !== void 0 ? _b : " ");
+        : secondsRemaining / durationSeconds, config?.capitalizeSuffix ? suffix.toUpperCase() : suffix))
+        .join(config?.delimiter ?? " ");
 }
-exports.getExpirationString = getExpirationString;
 function shortDateString(utc_seconds) {
     return `${new Date(utc_seconds * 1000).toLocaleDateString([], {
         month: "2-digit",
@@ -48,7 +50,6 @@ function shortDateString(utc_seconds) {
         minute: "2-digit",
     })}`;
 }
-exports.shortDateString = shortDateString;
 function longDateString(utcSeconds) {
     return new Date(utcSeconds * 1000).toLocaleTimeString(["en-US"], {
         year: "2-digit",
@@ -59,7 +60,6 @@ function longDateString(utcSeconds) {
         timeZoneName: "short",
     });
 }
-exports.longDateString = longDateString;
 function secondstoDuration(durationSeconds) {
     const years = Math.floor(durationSeconds / 31449600);
     const months = Math.floor((durationSeconds % 31449600) / 2419200);
@@ -81,7 +81,6 @@ function secondstoDuration(durationSeconds) {
     }
     return duration;
 }
-exports.secondstoDuration = secondstoDuration;
 const secondsToString = (requiredSeconds, showSeconds = true) => {
     if (!requiredSeconds || requiredSeconds <= 0)
         return "0";

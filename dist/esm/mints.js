@@ -1,4 +1,3 @@
-import { __awaiter } from "tslib";
 import { createCreateOrUpdateInstruction, PROGRAM_ID as TOKEN_AUTH_RULES_ID, } from "@metaplex-foundation/mpl-token-auth-rules";
 import { createCreateInstruction, createMintInstruction, TokenStandard, } from "@metaplex-foundation/mpl-token-metadata";
 import { encode } from "@msgpack/msgpack";
@@ -6,13 +5,13 @@ import { ASSOCIATED_TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, c
 import { Keypair, SystemProgram, SYSVAR_INSTRUCTIONS_PUBKEY, Transaction, } from "@solana/web3.js";
 import { findMintEditionId, findMintMetadataId, findRuleSetId, findTokenRecordId, } from "./pda";
 import { executeTransaction } from "./transactions";
-export const createProgrammableAsset = (connection, wallet, uri = "uri") => __awaiter(void 0, void 0, void 0, function* () {
+export const createProgrammableAsset = async (connection, wallet, uri = "uri") => {
     const mintKeypair = Keypair.generate();
     const mintId = mintKeypair.publicKey;
     const [tx, ata, rulesetId] = createProgrammableAssetTx(mintKeypair.publicKey, wallet.publicKey, uri);
-    yield executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
+    await executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
     return [ata, mintId, rulesetId];
-});
+};
 export const createProgrammableAssetTx = (mintId, authority, uri = "uri") => {
     const metadataId = findMintMetadataId(mintId);
     const masterEditionId = findMintEditionId(mintId);
@@ -79,7 +78,10 @@ export const createProgrammableAssetTx = (mintId, authority, uri = "uri") => {
             printSupply: { __kind: "Zero" },
         },
     });
-    const createIxWithSigner = Object.assign(Object.assign({}, createIx), { keys: createIx.keys.map((k) => k.pubkey.toString() === mintId.toString() ? Object.assign(Object.assign({}, k), { isSigner: true }) : k) });
+    const createIxWithSigner = {
+        ...createIx,
+        keys: createIx.keys.map((k) => k.pubkey.toString() === mintId.toString() ? { ...k, isSigner: true } : k),
+    };
     const mintIx = createMintInstruction({
         token: ataId,
         tokenOwner: authority,
@@ -114,13 +116,13 @@ export const createProgrammableAssetTx = (mintId, authority, uri = "uri") => {
  * @param config
  * @returns
  */
-export const createMint = (connection, wallet, config) => __awaiter(void 0, void 0, void 0, function* () {
+export const createMint = async (connection, wallet, config) => {
     const mintKeypair = Keypair.generate();
     const mintId = mintKeypair.publicKey;
-    const [tx, ata] = yield createMintTx(connection, mintKeypair.publicKey, wallet.publicKey, config);
-    yield executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
+    const [tx, ata] = await createMintTx(connection, mintKeypair.publicKey, wallet.publicKey, config);
+    await executeTransaction(connection, tx, wallet, { signers: [mintKeypair] });
     return [ata, mintId];
-});
+};
 /**
  * Transaction for creating a mint
  * @param connection
@@ -129,11 +131,11 @@ export const createMint = (connection, wallet, config) => __awaiter(void 0, void
  * @param config
  * @returns
  */
-export const createMintTx = (connection, mintId, authority, config) => __awaiter(void 0, void 0, void 0, function* () {
-    const [ixs, ata] = yield createMintIxs(connection, mintId, authority, config);
+export const createMintTx = async (connection, mintId, authority, config) => {
+    const [ixs, ata] = await createMintIxs(connection, mintId, authority, config);
     const tx = new Transaction().add(...ixs);
     return [tx, ata];
-});
+};
 /**
  * Instructions for creating a mint
  * @param connection
@@ -142,9 +144,8 @@ export const createMintTx = (connection, mintId, authority, config) => __awaiter
  * @param config
  * @returns
  */
-export const createMintIxs = (connection, mintId, authority, config) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c;
-    const target = (_a = config === null || config === void 0 ? void 0 : config.target) !== null && _a !== void 0 ? _a : authority;
+export const createMintIxs = async (connection, mintId, authority, config) => {
+    const target = config?.target ?? authority;
     const ata = getAssociatedTokenAddressSync(mintId, target, true);
     return [
         [
@@ -152,14 +153,14 @@ export const createMintIxs = (connection, mintId, authority, config) => __awaite
                 fromPubkey: authority,
                 newAccountPubkey: mintId,
                 space: MINT_SIZE,
-                lamports: yield getMinimumBalanceForRentExemptMint(connection),
+                lamports: await getMinimumBalanceForRentExemptMint(connection),
                 programId: TOKEN_PROGRAM_ID,
             }),
-            createInitializeMint2Instruction(mintId, (_b = config === null || config === void 0 ? void 0 : config.decimals) !== null && _b !== void 0 ? _b : 0, authority, authority),
+            createInitializeMint2Instruction(mintId, config?.decimals ?? 0, authority, authority),
             createAssociatedTokenAccountInstruction(authority, ata, target, mintId),
-            createMintToInstruction(mintId, ata, authority, (_c = config === null || config === void 0 ? void 0 : config.amount) !== null && _c !== void 0 ? _c : 1),
+            createMintToInstruction(mintId, ata, authority, config?.amount ?? 1),
         ],
         ata,
     ];
-});
+};
 //# sourceMappingURL=mints.js.map

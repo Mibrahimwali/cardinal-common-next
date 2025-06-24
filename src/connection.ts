@@ -17,6 +17,6 @@ export const connectionFor = (
 ) => {
   return new Connection(
     process.env.RPC_URL || networkURLs[cluster || defaultCluster],
-    "recent"
+    "confirmed"
   );
 };

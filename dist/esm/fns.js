@@ -1,4 +1,3 @@
-import { __awaiter } from "tslib";
 function isPromiseLike(obj) {
     return (!!obj &&
         (typeof obj === "object" || typeof obj === "function") &&
@@ -28,28 +27,26 @@ export const tryFn = (fn) => {
         return new Error(String(err));
     }
 };
-export const tryNull = (fn, errorHandler) => __awaiter(void 0, void 0, void 0, function* () {
-    const v = yield tryFn(fn);
+export const tryNull = async (fn, errorHandler) => {
+    const v = await tryFn(fn);
     if (isError(v)) {
         errorHandler && errorHandler(v);
         return null;
     }
     return v;
-});
+};
 /**
  * Tries to get account based on function fn
  * Return null if account doesn't exist
  * @param fn
  * @returns
  */
-export function tryGetAccount(fn) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return yield fn();
-        }
-        catch (_a) {
-            return null;
-        }
-    });
+export async function tryGetAccount(fn) {
+    try {
+        return await fn();
+    }
+    catch {
+        return null;
+    }
 }
 //# sourceMappingURL=fns.js.map

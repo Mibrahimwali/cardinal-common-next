@@ -3,7 +3,9 @@ import { withCluster } from "./utils";
 export function shortPubKey(pubkey, startChars = 4, endChars = startChars) {
     if (!pubkey)
         return "";
-    return `${pubkey === null || pubkey === void 0 ? void 0 : pubkey.toString().substring(0, startChars)}..${pubkey === null || pubkey === void 0 ? void 0 : pubkey.toString().substring((pubkey === null || pubkey === void 0 ? void 0 : pubkey.toString().length) - endChars)}`;
+    return `${pubkey?.toString().substring(0, startChars)}..${pubkey
+        ?.toString()
+        .substring(pubkey?.toString().length - endChars)}`;
 }
 export function pubKeyUrl(pubkey, cluster) {
     if (!pubkey)

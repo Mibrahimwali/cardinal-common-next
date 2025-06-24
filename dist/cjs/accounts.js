@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchAccountDataById = exports.getBatchedMultipleAccounts = exports.fetchIdlAccountDataById = exports.decodeIdlAccountInfos = exports.getProgramIdlAccounts = exports.tryDecodeIdlAccountUnknown = exports.decodeIdlAccountUnknown = exports.tryDecodeIdlAccount = exports.decodeIdlAccount = exports.fetchIdlAccountNullable = exports.fetchIdlAccount = void 0;
-const tslib_1 = require("tslib");
 const anchor_1 = require("@coral-xyz/anchor");
 /**
  * Fetch an account with idl types
@@ -11,12 +10,12 @@ const anchor_1 = require("@coral-xyz/anchor");
  * @param config
  * @returns
  */
-const fetchIdlAccount = (connection, pubkey, accountType, idl, config) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const account = yield (0, exports.fetchIdlAccountNullable)(connection, pubkey, accountType, idl, config);
+const fetchIdlAccount = async (connection, pubkey, accountType, idl, config) => {
+    const account = await (0, exports.fetchIdlAccountNullable)(connection, pubkey, accountType, idl, config);
     if (!account)
         throw "Account info not found";
     return account;
-});
+};
 exports.fetchIdlAccount = fetchIdlAccount;
 /**
  * Fetch a possibly null account with idl types of a specific type
@@ -27,19 +26,23 @@ exports.fetchIdlAccount = fetchIdlAccount;
  * @param idl
  * @returns
  */
-const fetchIdlAccountNullable = (connection, pubkey, accountType, idl, config) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const accountInfo = yield connection.getAccountInfo(pubkey, config);
+const fetchIdlAccountNullable = async (connection, pubkey, accountType, idl, config) => {
+    const accountInfo = await connection.getAccountInfo(pubkey, config);
     if (!accountInfo)
         return null;
     try {
         const parsed = new anchor_1.BorshAccountsCoder(idl).decode(accountType, accountInfo.data);
-        return Object.assign(Object.assign({}, accountInfo), { pubkey,
-            parsed, type: accountType });
+        return {
+            ...accountInfo,
+            pubkey,
+            parsed,
+            type: accountType,
+        };
     }
     catch (e) {
         return null;
     }
-});
+};
 exports.fetchIdlAccountNullable = fetchIdlAccountNullable;
 /**
  * Decode an account with idl types of a specific type
@@ -50,7 +53,11 @@ exports.fetchIdlAccountNullable = fetchIdlAccountNullable;
  */
 const decodeIdlAccount = (accountInfo, accountType, idl) => {
     const parsed = new anchor_1.BorshAccountsCoder(idl).decode(accountType, accountInfo.data);
-    return Object.assign(Object.assign({}, accountInfo), { type: accountType, parsed });
+    return {
+        ...accountInfo,
+        type: accountType,
+        parsed,
+    };
 };
 exports.decodeIdlAccount = decodeIdlAccount;
 /**
@@ -65,7 +72,11 @@ const tryDecodeIdlAccount = (accountInfo, accountType, idl) => {
         return (0, exports.decodeIdlAccount)(accountInfo, accountType, idl);
     }
     catch (e) {
-        return Object.assign(Object.assign({}, accountInfo), { type: "unknown", parsed: null });
+        return {
+            ...accountInfo,
+            type: "unknown",
+            parsed: null,
+        };
     }
 };
 exports.tryDecodeIdlAccount = tryDecodeIdlAccount;
@@ -84,12 +95,16 @@ const decodeIdlAccountUnknown = (accountInfo, idl) => {
         throw "No account definitions found in IDL";
     // find matching account name
     const accountTypes = idlAccounts.map((a) => a.name);
-    const accountType = accountTypes === null || accountTypes === void 0 ? void 0 : accountTypes.find((accountType) => anchor_1.BorshAccountsCoder.accountDiscriminator(accountType).compare(accountInfo.data.subarray(0, 8)) === 0);
+    const accountType = accountTypes?.find((accountType) => anchor_1.BorshAccountsCoder.accountDiscriminator(accountType).compare(accountInfo.data.subarray(0, 8)) === 0);
     if (!accountType)
         throw "No account discriminator match found";
     // decode
     const parsed = new anchor_1.BorshAccountsCoder(idl).decode(accountType, accountInfo.data);
-    return Object.assign(Object.assign({}, accountInfo), { type: accountType, parsed });
+    return {
+        ...accountInfo,
+        type: accountType,
+        parsed,
+    };
 };
 exports.decodeIdlAccountUnknown = decodeIdlAccountUnknown;
 /**
@@ -103,7 +118,11 @@ const tryDecodeIdlAccountUnknown = (accountInfo, idl) => {
         return (0, exports.decodeIdlAccountUnknown)(accountInfo, idl);
     }
     catch (e) {
-        return Object.assign(Object.assign({}, accountInfo), { type: "unknown", parsed: null });
+        return {
+            ...accountInfo,
+            type: "unknown",
+            parsed: null,
+        };
     }
 };
 exports.tryDecodeIdlAccountUnknown = tryDecodeIdlAccountUnknown;
@@ -116,9 +135,8 @@ exports.tryDecodeIdlAccountUnknown = tryDecodeIdlAccountUnknown;
  * @param idl
  * @returns
  */
-const getProgramIdlAccounts = (connection, accountType, programId, idl, config) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const accountInfos = yield connection.getProgramAccounts(programId, {
+const getProgramIdlAccounts = async (connection, accountType, programId, idl, config) => {
+    const accountInfos = await connection.getProgramAccounts(programId, {
         filters: [
             {
                 memcmp: {
@@ -126,11 +144,14 @@ const getProgramIdlAccounts = (connection, accountType, programId, idl, config) 
                     bytes: anchor_1.utils.bytes.bs58.encode(anchor_1.BorshAccountsCoder.accountDiscriminator(accountType)),
                 },
             },
-            ...((_a = config === null || config === void 0 ? void 0 : config.filters) !== null && _a !== void 0 ? _a : []),
+            ...(config?.filters ?? []),
         ],
     });
-    return accountInfos.map((accountInfo) => (Object.assign({ pubkey: accountInfo.pubkey }, (0, exports.tryDecodeIdlAccount)(accountInfo.account, accountType, idl))));
-});
+    return accountInfos.map((accountInfo) => ({
+        pubkey: accountInfo.pubkey,
+        ...(0, exports.tryDecodeIdlAccount)(accountInfo.account, accountType, idl),
+    }));
+};
 exports.getProgramIdlAccounts = getProgramIdlAccounts;
 /**
  * Decode account infos with corresponding ids
@@ -140,13 +161,12 @@ exports.getProgramIdlAccounts = getProgramIdlAccounts;
  */
 const decodeIdlAccountInfos = (accountIds, accountInfos, programId, idl) => {
     return accountInfos.reduce((acc, accountInfo, i) => {
-        var _a;
-        if (!(accountInfo === null || accountInfo === void 0 ? void 0 : accountInfo.data))
+        if (!accountInfo?.data)
             return acc;
         const accountId = accountIds[i];
         if (!accountId)
             return acc;
-        const accoutIdString = (_a = accountId === null || accountId === void 0 ? void 0 : accountId.toString()) !== null && _a !== void 0 ? _a : "";
+        const accoutIdString = accountId?.toString() ?? "";
         const ownerString = accountInfo.owner.toString();
         const baseData = {
             timestamp: Date.now(),
@@ -155,22 +175,30 @@ const decodeIdlAccountInfos = (accountIds, accountInfos, programId, idl) => {
         switch (ownerString) {
             // stakePool
             case programId.toString(): {
-                acc[accoutIdString] = Object.assign(Object.assign({}, baseData), (0, exports.tryDecodeIdlAccountUnknown)(accountInfo, idl));
+                acc[accoutIdString] = {
+                    ...baseData,
+                    ...(0, exports.tryDecodeIdlAccountUnknown)(accountInfo, idl),
+                };
                 return acc;
             }
             // fallback
             default:
-                acc[accoutIdString] = Object.assign(Object.assign(Object.assign({}, baseData), accountInfo), { type: "unknown", parsed: null });
+                acc[accoutIdString] = {
+                    ...baseData,
+                    ...accountInfo,
+                    type: "unknown",
+                    parsed: null,
+                };
                 return acc;
         }
     }, {});
 };
 exports.decodeIdlAccountInfos = decodeIdlAccountInfos;
-const fetchIdlAccountDataById = (connection, ids, programId, idl) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+const fetchIdlAccountDataById = async (connection, ids, programId, idl) => {
     const filteredIds = ids.filter((id) => id !== null);
-    const accountInfos = yield (0, exports.getBatchedMultipleAccounts)(connection, filteredIds);
+    const accountInfos = await (0, exports.getBatchedMultipleAccounts)(connection, filteredIds);
     return (0, exports.decodeIdlAccountInfos)(filteredIds, accountInfos, programId, idl);
-});
+};
 exports.fetchIdlAccountDataById = fetchIdlAccountDataById;
 /**
  * Fecthes multiple accounts in batches since there is a limit of
@@ -181,7 +209,7 @@ exports.fetchIdlAccountDataById = fetchIdlAccountDataById;
  * @param batchSize
  * @returns
  */
-const getBatchedMultipleAccounts = (connection, ids, config, batchSize = 100) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+const getBatchedMultipleAccounts = async (connection, ids, config, batchSize = 100) => {
     const batches = [[]];
     ids.forEach((id) => {
         const batch = batches[batches.length - 1];
@@ -194,9 +222,9 @@ const getBatchedMultipleAccounts = (connection, ids, config, batchSize = 100) =>
             }
         }
     });
-    const batchAccounts = yield Promise.all(batches.map((b) => b.length > 0 ? connection.getMultipleAccountsInfo(b, config) : []));
+    const batchAccounts = await Promise.all(batches.map((b) => b.length > 0 ? connection.getMultipleAccountsInfo(b, config) : []));
     return batchAccounts.flat();
-});
+};
 exports.getBatchedMultipleAccounts = getBatchedMultipleAccounts;
 /**
  * Batch fetch a map of accounts and their corresponding ids
@@ -204,18 +232,21 @@ exports.getBatchedMultipleAccounts = getBatchedMultipleAccounts;
  * @param ids
  * @returns
  */
-const fetchAccountDataById = (connection, ids) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
+const fetchAccountDataById = async (connection, ids) => {
     const filteredIds = ids.filter((id) => id !== null);
-    const accountInfos = yield (0, exports.getBatchedMultipleAccounts)(connection, filteredIds);
+    const accountInfos = await (0, exports.getBatchedMultipleAccounts)(connection, filteredIds);
     return accountInfos.reduce((acc, accountInfo, i) => {
-        if (!(accountInfo === null || accountInfo === void 0 ? void 0 : accountInfo.data))
+        if (!accountInfo?.data)
             return acc;
         const pubkey = ids[i];
         if (!pubkey)
             return acc;
-        acc[pubkey.toString()] = Object.assign({ pubkey }, accountInfo);
+        acc[pubkey.toString()] = {
+            pubkey,
+            ...accountInfo,
+        };
         return acc;
     }, {});
-});
+};
 exports.fetchAccountDataById = fetchAccountDataById;
 //# sourceMappingURL=accounts.js.map

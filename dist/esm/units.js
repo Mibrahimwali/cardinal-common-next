@@ -83,7 +83,7 @@ export const tryBN = (n) => {
     try {
         return new BN(n);
     }
-    catch (_a) {
+    catch {
         return null;
     }
 };

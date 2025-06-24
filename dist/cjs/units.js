@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tryBN = exports.tryParseInput = exports.tryFormatInput = exports.decimalAmount = exports.naturalAmount = void 0;
+exports.tryBN = void 0;
+exports.naturalAmount = naturalAmount;
+exports.decimalAmount = decimalAmount;
+exports.tryFormatInput = tryFormatInput;
+exports.tryParseInput = tryParseInput;
 const anchor_1 = require("@coral-xyz/anchor");
 const bignumber_js_1 = require("bignumber.js");
 /**
@@ -12,7 +16,6 @@ const bignumber_js_1 = require("bignumber.js");
 function naturalAmount(decimalAmount, decimals) {
     return new anchor_1.BN(new bignumber_js_1.BigNumber(decimalAmount).shiftedBy(decimals).toString());
 }
-exports.naturalAmount = naturalAmount;
 /**
  * Convert natural amount to decimals
  * @param decimalAmount number
@@ -24,7 +27,6 @@ function decimalAmount(naturalAmount, decimals) {
         .shiftedBy(-decimals)
         .toNumber();
 }
-exports.decimalAmount = decimalAmount;
 /**
  * Format a string stored input value in the input
  * @param stringAmount State stored string value
@@ -52,7 +54,6 @@ function tryFormatInput(stringAmount, decimals, defaultValue) {
         return defaultValue;
     }
 }
-exports.tryFormatInput = tryFormatInput;
 /**
  * Parse a string input state value from an input
  * @param stringAmount String input value
@@ -77,7 +78,6 @@ function tryParseInput(stringDecimal, decimals, defaultValue) {
         return defaultValue;
     }
 }
-exports.tryParseInput = tryParseInput;
 /**
  * Try to convert value to BN
  * @param stringAmount
@@ -90,7 +90,7 @@ const tryBN = (n) => {
     try {
         return new anchor_1.BN(n);
     }
-    catch (_a) {
+    catch {
         return null;
     }
 };

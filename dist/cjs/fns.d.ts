@@ -5,8 +5,8 @@ export declare const isError: (e: unknown) => e is Error;
  * @param p
  * @returns
  */
-export declare const tryFn: <T>(fn: PromiseLike<T> | (() => T | PromiseLike<T>)) => Error | T | PromiseLike<Error | T>;
-export declare const tryNull: <T>(fn: PromiseLike<T> | (() => T | PromiseLike<T>), errorHandler?: ((e: Error) => void) | undefined) => Promise<T | PromiseLike<T | null> | null>;
+export declare const tryFn: <T>(fn: PromiseLike<T> | (() => T | PromiseLike<T>)) => T | Error | PromiseLike<T | Error>;
+export declare const tryNull: <T>(fn: PromiseLike<T> | (() => T | PromiseLike<T>), errorHandler?: (e: Error) => void) => Promise<T | null | PromiseLike<T | null>>;
 /**
  * Tries to get account based on function fn
  * Return null if account doesn't exist

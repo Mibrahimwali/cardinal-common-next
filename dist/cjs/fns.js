@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tryGetAccount = exports.tryNull = exports.tryFn = exports.isError = void 0;
-const tslib_1 = require("tslib");
+exports.tryNull = exports.tryFn = exports.isError = void 0;
+exports.tryGetAccount = tryGetAccount;
 function isPromiseLike(obj) {
     return (!!obj &&
         (typeof obj === "object" || typeof obj === "function") &&
@@ -33,14 +33,14 @@ const tryFn = (fn) => {
     }
 };
 exports.tryFn = tryFn;
-const tryNull = (fn, errorHandler) => tslib_1.__awaiter(void 0, void 0, void 0, function* () {
-    const v = yield (0, exports.tryFn)(fn);
+const tryNull = async (fn, errorHandler) => {
+    const v = await (0, exports.tryFn)(fn);
     if ((0, exports.isError)(v)) {
         errorHandler && errorHandler(v);
         return null;
     }
     return v;
-});
+};
 exports.tryNull = tryNull;
 /**
  * Tries to get account based on function fn
@@ -48,15 +48,12 @@ exports.tryNull = tryNull;
  * @param fn
  * @returns
  */
-function tryGetAccount(fn) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-        try {
-            return yield fn();
-        }
-        catch (_a) {
-            return null;
-        }
-    });
+async function tryGetAccount(fn) {
+    try {
+        return await fn();
+    }
+    catch {
+        return null;
+    }
 }
-exports.tryGetAccount = tryGetAccount;
 //# sourceMappingURL=fns.js.map
